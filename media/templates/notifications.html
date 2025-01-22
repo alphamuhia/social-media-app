@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Your Notifications</h1>
+    <ul>
+        {% for notification in notifications %}
+            <li class="{% if notification.is_read %}text-gray-500{% else %}font-bold{% endif %}">
+                {{ notification.message }}
+                <span class="text-sm text-gray-400">{{ notification.created_at }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

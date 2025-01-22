@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Post{% endblock %}
+
+{% block content %}
+<h1 class="text-xl font-bold text-center my-4">All Posts</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for post in posts %}
+    <div class="bg-white p-4 rounded-lg shadow-md space-y-2">
+        <div class="text-sm text-gray-500 flex justify-between">
+            <span>By: <strong class="text-blue-600">{{ post.author.username }}</strong></span>
+            <span>{{ post.created_at|date:"M j, Y" }}</span>
+        </div>
+
+        <p class="text-gray-800 text-sm">{{ post.content|truncatechars:100 }}</p>
+
+        {% if post.image %}
+        <img src="{{ post.image.url }}" alt="Post Image" class="w-full h-40 object-cover rounded-md">
+        {% endif %}
+
+        <div class="flex items-center justify-between text-xs text-gray-600">
+            <span>{{ post.likes.count }} Likes</span>
+            <span>{{ post.comments.count }} Comments</span>
+        </div>
+
+        <div class="flex space-x-2">
+            <form method="post" action="{% url 'like_post' post.id %}">
+                {% csrf_token %}
+                <button class="py-1 px-2 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600">
+                    Like
+                </button>
+            </form>
+            <form method="post" action="{% url 'report_post' post.id %}">
+                {% csrf_token %}
+                <button class="py-1 px-2 bg-red-500 text-white rounded-md text-xs hover:bg-red-600">
+                    Report
+                </button>
+            </form>
+            {% if user != post.author %}
+            <form method="post" action="{% url 'block_user' post.author.id %}">
+                {% csrf_token %}
+                <button class="py-1 px-2 bg-gray-500 text-white rounded-md text-xs hover:bg-gray-600">
+                    Block
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <details class="text-xs bg-gray-100 p-2 rounded-md">
+            <summary class="cursor-pointer">View Comments ({{ post.comments.count }})</summary>
+            <ul class="mt-2 space-y-1">
+                {% for comment in post.comments.all|slice:":3" %}
+                <li>
+                    <p class="text-gray-700">{{ comment.content|truncatechars:60 }}</p>
+                    <span class="text-gray-500">- {{ comment.author.username }}</span>
+                </li>
+                {% endfor %}
+                {% if post.comments.count > 3 %}
+                <p class="text-gray-500">...and more</p>
+                {% endif %}
+            </ul>
+
+            <form method="post" action="{% url 'add_comment' post.id %}" class="mt-2">
+                {% csrf_token %}
+                <textarea name="content" rows="1" class="w-full p-1 border rounded text-xs" placeholder="Add a comment"></textarea>
+                <button type="submit" class="py-1 px-2 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 mt-1">
+                    Comment
+                </button>
+            </form>
+        </details>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+
+

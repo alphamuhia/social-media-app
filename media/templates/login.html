@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="bg-white flex justify-center items-center h-screen flex-col px-4">
+    {% if user.is_authenticated %}
+    <p class="bg-green-100 text-green-700 text-sm p-3 rounded mb-4">
+        You are already logged in
+    </p>
+    <a href="/" class="text-blue-700 hover:underline">Go Back to Homepage</a>
+    <a href="/logout" class="text-blue-700 hover:underline mt-2">Logout</a>
+    {% else %}
+    {% if error_message %}
+    <p class="bg-red-100 text-red-700 text-sm p-3 rounded mb-4">
+        {{ error_message }}
+    </p>
+    {% endif %}
+    <form method="post" action="" class="max-w-md w-full bg-gray-200 p-8 rounded-lg shadow-md space-y-6">
+        {% csrf_token %}
+        <div class="space-y-4">
+            <label for="username" class="block text-gray-700">Username</label>
+            {{ form.username }}
+            
+            <label for="password" class="block text-gray-700">Password</label>
+            {{ form.password }}
+
+            {% comment %} You can add additional form fields if necessary {% endcomment %}
+        </div>
+        
+        <button type="submit" class="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-300">
+            Login
+        </button>
+        <p class="text-center text-gray-600 mt-4">Don't have an account? <a href="/register" class="text-blue-500 hover:text-blue-700 font-semibold">Register</a></p>
+    </form>
+    {% endif %}
+</div>
+
+{% endblock %}

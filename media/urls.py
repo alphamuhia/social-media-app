@@ -1,0 +1,50 @@
+from django.urls import path
+from django.contrib.auth import views as auth_views
+from . import views
+from .views import (
+    register,
+    login,
+    profile,
+    home,
+    notifications,
+    send_message,
+    inbox,
+    report_post,
+    admin_dashboard,
+    activity_logs,
+    block_user,
+    unblock_user,
+    logout_view,
+    posts_view,
+    user_posts_view,
+)
+
+
+urlpatterns = [
+    path('', home, name='home'),
+    path('register/', register, name='register'),
+    path('login/', login, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('profile/', profile, name='profile'),
+    path('profile/<str:username>/', views.profile, name='profile'),
+    path('posts/', posts_view, name='posts'),
+    path('my-posts/', user_posts_view, name='user_posts'),
+    path('add/', views.add_post, name='add_post'),
+    path('notifications/', notifications, name='notifications'),
+    path('inbox/', inbox, name='inbox'),
+    path('search/', views.search_users, name='search_users'),
+    path('like/<int:post_id>/', views.like_post, name='like_post'),
+    path('comment/<int:post_id>/', views.add_comment, name='add_comment'),
+    path('report/<int:post_id>/', views.report_post, name='report_post'),
+    path('block/<int:user_id>/', views.block_user, name='block_user'),
+    path('activity_logs/', activity_logs, name='activity_logs'),
+    path('admin/dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('post/<int:post_id>/report/', report_post, name='report_post'),
+    path('message/send/<int:user_id>/', send_message, name='send_message'),
+    path('user/<int:user_id>/block/', block_user, name='block_user'),
+    path('user/<int:user_id>/unblock/', unblock_user, name='unblock_user'),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+]
