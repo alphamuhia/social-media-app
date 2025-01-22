@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-
 from .forms import UserRegistrationForm, ProfileUpdateForm, PostForm, UserProfileForm
 from .models import Profile, Post, Comment, Follow, UserProfile, Notification, Message, Report, Block, ActivityLog, Like
 from django.contrib.auth.models import User
@@ -36,6 +35,10 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
+
+            if not hasattr(user, 'profile'):
+                Profile.objects.create(user=user)
+
             next_url = request.GET.get('next', reverse('home'))
             return redirect(next_url)
     else:
@@ -130,9 +133,15 @@ def add_post(request):
 @login_required
 def add_comment(request, post_id):
     post = get_object_or_404(Post, id=post_id)
+    
     if request.method == 'POST':
-        content = request.POST['content']
-        Comment.objects.create(post=post, author=request.user, content=content)
+        content = request.POST.get('content')
+        if content:  # Check if content is provided
+            comment = Comment.objects.create(post=post, author=request.user, content=content)
+            return redirect('posts') 
+        else:
+            return redirect('posts')
+    
     return redirect('posts')
 
 def home(request):
@@ -181,8 +190,8 @@ def create_like_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Comment)
 def create_comment_notification(sender, instance, created, **kwargs):
     if created:
-        notification_message = f"{instance.user.username} commented on your post."
-        Notification.objects.create(user=instance.post.user, message=notification_message)
+        notification_message = f"{instance.author.username} commented on your post."
+        Notification.objects.create(user=instance.post.author, message=notification_message)
 
 @receiver(post_save, sender=Block)
 def create_block_notification(sender, instance, created, **kwargs):
