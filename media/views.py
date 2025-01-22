@@ -35,10 +35,6 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-
-            if not hasattr(user, 'profile'):
-                Profile.objects.create(user=user)
-
             next_url = request.GET.get('next', reverse('home'))
             return redirect(next_url)
     else:
@@ -56,17 +52,21 @@ def profile(request, username=None):
         username = request.user.username
     user = User.objects.get(username=username)
 
-    if not hasattr(user, 'profile'):
-        Profile.objects.create(user=user)
+    try:
+        profile = request.user.profile
+    except Profile.DoesNotExist:
+        profile = Profile.objects.create(user=request.user)
 
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             return redirect('profile', username=user.username)
     else:
-        form = ProfileUpdateForm(instance=request.user.profile)
+        form = ProfileUpdateForm(instance=profile)
+    
     return render(request, 'profile.html', {'form': form, 'user': user})
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -74,8 +74,15 @@ def create_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+def save_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.get_or_create(user=instance)
+    else:
+        if not hasattr(instance, 'profile'):
+            Profile.objects.get_or_create(user=instance)
+        else:
+            instance.profile.save()
+
 
 def profile_view(request):
     try:
